@@ -1,9 +1,14 @@
 # core/layout.py
 import streamlit as st
+from .i18n import LANGS
+
+def _is_rtl(lang: str) -> bool:
+    return LANGS.get(lang, {}).get("dir") == "rtl"
 
 def app_header(title: str, lang: str = "en"):
-    direction = "rtl" if lang == "ar" else "ltr"
-    text_align = "right" if lang == "ar" else "left"
+    is_rtl = _is_rtl(lang)
+    direction = "rtl" if is_rtl else "ltr"
+    text_align = "right" if is_rtl else "left"
     
     st.markdown(
         f"""
@@ -16,8 +21,9 @@ def app_header(title: str, lang: str = "en"):
     )
 
 def app_footer(lang: str = "en"):
-    direction = "rtl" if lang == "ar" else "ltr"
-    text_align = "right" if lang == "ar" else "left"
+    is_rtl = _is_rtl(lang)
+    direction = "rtl" if is_rtl else "ltr"
+    text_align = "right" if is_rtl else "left"
     
     st.markdown(
         f"""

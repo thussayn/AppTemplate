@@ -1,18 +1,11 @@
 # core/i18n.py
-import json
-import os
-import logging
 import streamlit as st
-
-# إعداد التسجيل (logging) لعرض التحذيرات في حالة وجود مشاكل في ملفات الترجمة
-logger = logging.getLogger(__name__)
 
 LANGS = {
     "en": {"label": "English", "dir": "ltr"},
     "ar": {"label": "العربية", "dir": "rtl"},
 }
 
-# ✅ قائمة موحدة وخالية من التكرار
 _DEF_TEXTS = {
     # === App Structure ===
     "app_title": {"en": "Secure Modular Starter", "ar": "قالب ستريمليت آمن ومنظّم"},
@@ -52,12 +45,31 @@ _DEF_TEXTS = {
     "save": {"en": "Save", "ar": "حفظ"},
     "cancel": {"en": "Cancel", "ar": "إلغاء"},
     "settings_saved": {"en": "Settings saved successfully!", "ar": "تم حفظ الإعدادات بنجاح!"},
+    "must_be_logged_in": {
+        "en": "You must be logged in to access settings.",
+        "ar": "يجب تسجيل الدخول للوصول إلى الإعدادات."
+    },
+    "current_theme": {"en": "Current Theme", "ar": "الثيم الحالي"},
+    "theme_change_hint": {
+        "en": "💡 To change the theme, please use the theme selector in the sidebar.",
+        "ar": "💡 لتغيير الثيم، يرجى استخدام محدد الثيم في الشريط الجانبي."
+    },
+    "back_to_home": {"en": "← Back to Home", "ar": "← العودة للرئيسية"},
 
     # === Language & Theme Options ===
     "language_selector_label": {"en": "Language", "ar": "اللغة"},
     "theme_selector_label": {"en": "Theme", "ar": "الثيم"},
     "english": {"en": "English", "ar": "الإنجليزية"},
     "arabic": {"en": "Arabic", "ar": "العربية"},
+    
+    # === الثيمات الجديدة ===
+    "modern_light": {"en": "Modern Light", "ar": "فاتح عصري"},
+    "professional_dark": {"en": "Professional Dark", "ar": "داكن احترافي"},
+    "warm_earth": {"en": "Warm Earth", "ar": "ألوان الأرض"},
+    "saudi": {"en": "Saudi", "ar": "سعودي"},
+    "soft": {"en": "Soft", "ar": "رقيق"},
+    
+    # === الثيمات القديمة (للتوافق) ===
     "light": {"en": "Light", "ar": "فاتح"},
     "dark": {"en": "Dark", "ar": "داكن"},
 
@@ -86,51 +98,24 @@ _DEF_TEXTS = {
     "error": {"en": "Error", "ar": "خطأ"},
     "success": {"en": "Success", "ar": "نجاح"},
     "are_you_sure": {"en": "Are you sure?", "ar": "هل أنت متأكد؟"},
+    "save_changes": {"en": "Save Changes", "ar": "حفظ التغييرات"},
+    "loading": {"en": "Loading...", "ar": "جاري التحميل..."},
+    "no_data": {"en": "No data available", "ar": "لا توجد بيانات متاحة"},
 }
-
-_TRANSLATIONS = {}
-
-def _load_json(path: str):
-    """تحميل ملف ترجمة JSON مع معالجة الأخطاء."""
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        logger.warning(f"Translation file not found: {path}")
-        return {}
-    except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in {path}: {e}")
-        return {}
-
-def load_translations():
-    """تحميل الترجمات من مجلد locales."""
-    global _TRANSLATIONS
-    base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "locales")
-    _TRANSLATIONS = {
-        "en": _load_json(os.path.join(base_dir, "en.json")),
-        "ar": _load_json(os.path.join(base_dir, "ar.json")),
-    }
 
 def get_text(key: str) -> str:
     """استرجاع النص المترجم حسب اللغة الحالية."""
-    if not _TRANSLATIONS:
-        load_translations()
-    
     lang = st.session_state.get("lang", "en")
     if lang not in LANGS:
         lang = "en"  # fallback إلى الإنجليزية إذا كانت اللغة غير مدعومة
 
-    # أولًا: جرّب من ملفات locales (إذا وُجدت)
-    value = _TRANSLATIONS.get(lang, {}).get(key)
-    if value is not None:
-        return value
-
-    # ثانيًا: جرّب من _DEF_TEXTS المضمنة
+    # استرجاع النص من _DEF_TEXTS
     if key in _DEF_TEXTS:
         return _DEF_TEXTS[key].get(lang, _DEF_TEXTS[key].get("en", key))
 
-    # ثالثًا: fallback
-    return f"??{key}??"
+    # fallback - تسجيل النص المفقود
+    print(f"⚠️ Missing translation: {key} (lang: {lang})")
+    return f"[{key}]"
 
 def init_language(default: str = "en"):
     """تهيئة اللغة الافتراضية في حالة عدم وجودها في الجلسة."""
