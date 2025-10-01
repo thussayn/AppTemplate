@@ -13,7 +13,7 @@ def settings_form(cookies=None):
 
     username = user["username"]
     current_lang = st.session_state.get("lang", "en")
-    current_theme = st.session_state.get("theme", "light")
+    current_theme = st.session_state.get("theme", "modern_light")
 
     # Language
     st.markdown("### " + get_text("language"))
@@ -28,26 +28,39 @@ def settings_form(cookies=None):
     )
     selected_lang = label_to_lang[selected_label]
 
-    # Theme
+    # Theme - للعرض فقط مع معلومات
     st.markdown("### " + get_text("theme"))
-    theme_labels = [get_text("light"), get_text("dark")]
-    theme_label_to_value = {get_text("light"): "light", get_text("dark"): "dark"}
-    current_theme_label = get_text("dark") if current_theme == "dark" else get_text("light")
-    selected_theme_label = st.selectbox(
-        get_text("theme"),
-        options=theme_labels,
-        index=theme_labels.index(current_theme_label),
-        key="settings_theme_select"
-    )
-    selected_theme = theme_label_to_value[selected_theme_label]
-
-    if st.button(get_text("save")):
-        update_user_prefs(username, preferred_lang=selected_lang, preferred_theme=selected_theme)
-        st.session_state.lang = selected_lang
-        st.session_state.theme = selected_theme
-        if cookies is not None:
-            cookies["lang"] = selected_lang
-            cookies["theme"] = selected_theme
-            cookies.save()
-        st.success(get_text("settings_saved"))
-        st.rerun()
+    
+    theme_display_names = {
+        "modern_light": get_text("modern_light"),
+        "professional_dark": get_text("professional_dark"),
+        "warm_earth": get_text("warm_earth"),
+        "saudi": get_text("saudi"),
+        "soft": get_text("soft"),
+    }
+    current_theme_display = theme_display_names.get(current_theme, get_text("modern_light"))
+    
+    # عرض الثيم الحالي مع رسالة توجيهية - مترجم الآن
+    st.info(f"**{get_text('current_theme')}:** {current_theme_display}")
+    st.write(get_text("theme_change_hint"))
+    
+    # خط فاصل
+    st.markdown("---")
+    
+    # زر الحفظ للغة فقط
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        if st.button(get_text("save"), type="primary", use_container_width=True):
+            update_user_prefs(username, preferred_lang=selected_lang, preferred_theme=current_theme)
+            st.session_state.lang = selected_lang
+            if cookies is not None:
+                cookies["lang"] = selected_lang
+                cookies.save()
+            st.success(get_text("settings_saved"))
+            
+    with col2:
+        # زر الرجوع - مترجم الآن
+        if st.button(get_text("back_to_home"), use_container_width=True):
+            # الرجوع للهوم
+            st.session_state.active_tab = "Home"
+            st.rerun()

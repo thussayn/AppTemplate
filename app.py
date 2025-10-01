@@ -3,7 +3,11 @@ import streamlit as st
 from streamlit_cookies_manager import EncryptedCookieManager
 
 # Set page config early
-st.set_page_config(page_title="Secure Modular Starter", layout="wide")
+st.set_page_config(
+    page_title="Secure Modular Starter", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # Initialize Encrypted Cookie Manager
 cookies = EncryptedCookieManager(
@@ -30,6 +34,7 @@ def update_user_language_and_theme(lang: str, theme: str):
     if user:
         update_user_prefs(user["username"], preferred_lang=lang, preferred_theme=theme)
 
+
 # Ensure DB is ready
 ensure_db_ready()
 
@@ -43,13 +48,14 @@ else:
 if "lang" not in st.session_state:
     st.session_state.lang = cookies.get("lang", "en")
 if "theme" not in st.session_state:
-    st.session_state.theme = cookies.get("theme", "light")
+    st.session_state.theme = cookies.get("theme", "modern_light")
 
 # Import other modules
 from core.i18n import get_text
 from features import auth as auth_feature
 from core.layout import app_header, app_footer
 from features import dashboard_admin, dashboard_editor, dashboard_viewer, home, about
+from core.theme import apply_theme, apply_navigation_fix
 
 # Sidebar
 with st.sidebar:
@@ -67,22 +73,32 @@ with st.sidebar:
         st.session_state.lang = lang
         cookies["lang"] = lang
         if is_authenticated():
-            update_user_language_and_theme(lang, st.session_state.get("theme", "light"))
+            update_user_language_and_theme(lang, st.session_state.get("theme", "modern_light"))
         cookies.save()
         st.rerun()
 
     st.markdown("---")
     st.markdown("### 🎨 " + get_text("theme"))
-    theme_keys = ["light", "dark"]
-    current_theme = st.session_state.get("theme", "light")
-    theme = st.radio(
+    theme_keys = ["modern_light", "professional_dark", "warm_earth", "saudi", "soft"]
+    current_theme = st.session_state.get("theme", "modern_light")
+    
+    # إنشاء قاموس لتحويل قيم الثيم إلى نصوص معروضة
+    theme_display_names = {
+        "modern_light": get_text("modern_light"),
+        "professional_dark": get_text("professional_dark"), 
+        "warm_earth": get_text("warm_earth"),
+        "saudi": get_text("saudi"),
+        "soft": get_text("soft")
+    }
+    
+    theme = st.selectbox(
         get_text("theme_selector_label"),
         options=theme_keys,
         index=theme_keys.index(current_theme) if current_theme in theme_keys else 0,
-        format_func=lambda x: get_text(x),
+        format_func=lambda x: theme_display_names[x],
         key="theme_selector"
     )
-    if theme != st.session_state.get("theme", "light"):
+    if theme != st.session_state.get("theme", "modern_light"):
         st.session_state.theme = theme
         cookies["theme"] = theme
         if is_authenticated():
@@ -98,48 +114,9 @@ with st.sidebar:
             st.session_state.post_logout = True
             st.rerun()
 
-# Apply RTL/LTR based on language — compatible with all Streamlit versions
-def apply_direction_css(lang: str):
-    # إنشاء ختم فريد لضمان تحديث CSS في كل مرة
-    import time
-    unique_stamp = str(int(time.time() * 1000000))  # microsecond timestamp
-    
-    if lang == "ar":
-        css = f"""
-        /* RTL CSS - {unique_stamp} */
-        html, body, [data-testid="stAppViewContainer"],
-        [data-testid="stHeader"], [data-testid="stSidebarContent"] {{
-            direction: rtl !important;
-            text-align: right !important;
-        }}
-        [data-testid="stSidebar"] {{
-            left: auto !important;
-            right: 0 !important;
-        }}
-        .stTextInput > div > div > input,
-        .stSelectbox > div > div,
-        .stRadio > div,
-        .stMarkdown,
-        .stText {{
-            text-align: right !important;
-        }}
-        """
-    else:
-        css = f"""
-        /* LTR CSS - {unique_stamp} */
-        html, body, [data-testid="stAppViewContainer"],
-        [data-testid="stHeader"], [data-testid="stSidebarContent"] {{
-            direction: ltr !important;
-            text-align: left !important;
-        }}
-        [data-testid="stSidebar"] {{
-            left: 0 !important;
-            right: auto !important;
-        }}
-        """
-    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-
-apply_direction_css(st.session_state.lang)
+# Apply theme and fixes
+apply_theme(st.session_state.theme, st.session_state.lang)
+apply_navigation_fix()
 
 # Header
 app_header(get_text("app_title"), lang=st.session_state.lang)
@@ -151,12 +128,27 @@ else:
     user = get_current_user()
     role = user.get("role", "Viewer")
 
+    # تحديد التبويب النشط
+    if "active_tab" not in st.session_state:
+        st.session_state.active_tab = "Home"
+
     home_label = get_text("home_title")
     about_label = get_text("about_title")
     dashboard_label = get_text("dashboard")
     settings_label = get_text("settings")
 
-    tab = st.tabs([home_label, about_label, dashboard_label, settings_label])
+    tab_labels = [home_label, about_label, dashboard_label, settings_label]
+
+    # تحديد index التبويب النشط
+    tab_index = 0
+    if st.session_state.active_tab == "About":
+        tab_index = 1
+    elif st.session_state.active_tab == "Dashboard": 
+        tab_index = 2
+    elif st.session_state.active_tab == "Settings":
+        tab_index = 3
+
+    tab = st.tabs(tab_labels)
 
     with tab[0]:
         home.render()

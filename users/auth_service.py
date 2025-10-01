@@ -59,11 +59,11 @@ def logout(cookies=None):
     st.session_state.pop(SESSION_KEY, None)
     st.session_state.pop("lang", None)
     st.session_state.pop("theme", None)
+    st.session_state.pop("last_username", None)  # ← إضافة جديدة
     st.session_state["explicitly_logged_out"] = True
     if cookies is not None:
-        # مسح الـ cookies بشكل فعّال
         for key in ["auth_user", "lang", "theme"]:
-            cookies[key] = ""  # ← هذا يضمن مسح القيمة في المتصفح
+            cookies[key] = ""
         cookies.save()
 
 def restore_session_from_cookie(cookies):

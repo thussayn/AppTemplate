@@ -58,9 +58,6 @@ streamlit_app/
 │   ├── db.py                     # الاتصال بقاعدة البيانات (SQLite)
 │   ├── models.py                 # تعريف الجداول في قاعدة البيانات (مستخدمين، إعدادات مستخدمين)
 │   └── seed.py                   # إضافة بيانات افتراضية (مثل المستخدمين)
-├── locales/
-│   ├── en.json                   # ملف الترجمة الإنجليزية
-│   └── ar.json                   # ملف الترجمة العربية
 ├── users/
 │   └── auth_service.py           # دوال إدارة المصادقة (login, logout, create user)
 └── .streamlit/

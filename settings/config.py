@@ -9,10 +9,10 @@ CONFIG_PATH = "app_config.json"
 class AppConfig:
     app_title: str = "Secure Modular Starter"
     default_language: str = "en"
-    default_theme: str = "light"
-    allowed_themes: tuple = ("ocean","light","solar","midnight")
+    default_theme: str = "modern_light"  # ✅ غيرها إلى ثيم موجود
+    allowed_themes: tuple = ("modern_light", "professional_dark", "warm_earth")  # ✅ حدّث القائمة
     logo_path: str = ""
-
+    
     @staticmethod
     def load():
         if os.path.exists(CONFIG_PATH):
